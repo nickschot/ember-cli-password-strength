@@ -11,9 +11,21 @@ module.exports = {
   included(app) {
     this._super.included.apply(this, arguments);
 
-    if (typeof app.import !== 'function' && app.app) {
-      app = app.app;
+    var app;
+
+    // If the addon has the _findHost() method (in ember-cli >= 2.7.0), we'll just
+    // use that.
+    if (typeof this._findHost === 'function') {
+      app = this._findHost();
+    } else {
+      // Otherwise, we'll use this implementation borrowed from the _findHost()
+      // method in ember-cli.
+      var current = this;
+      do {
+        app = current.app || app;
+      } while (current.parent.parent && (current = current.parent));
     }
+
     app.import('vendor/zxcvbn.js');
     app.import('vendor/shims/password-strength.js');
   },
